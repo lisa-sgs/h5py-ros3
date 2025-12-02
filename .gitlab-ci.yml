@@ -33,9 +33,8 @@ build-wheels:
     CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34"
     CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
   script:
-    - cat /etc/os-release
-    - apk add curl
-    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - apk add curl && curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
     - uvx pip download --no-binary h5py h5py
     - tar xzf h5py-*.tar.gz
