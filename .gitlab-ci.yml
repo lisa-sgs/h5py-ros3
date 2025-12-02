@@ -2,6 +2,7 @@ variables:
   HDF5_VERSION: "2.0.0"
 
 build-deps-image:
+  image: docker:latest
   parallel:
     matrix:
       - OS_IMAGE: ["debian:latest"]
