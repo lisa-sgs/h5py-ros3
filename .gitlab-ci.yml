@@ -48,7 +48,7 @@ build-wheels:
       - wheelhouse/
 
 publish-wheels:
-  image: ghcr.io/astral-sh/uv
+  image: ghcr.io/astral-sh/uv:alpine
   needs:
     - build-wheels
   variables:
