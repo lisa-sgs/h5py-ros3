@@ -26,13 +26,15 @@ build-deps-image:
         - .gitlab-ci.yml
 
 build-wheels:
-  needs:
-    - build-deps-image
+  # needs:
+  #   - build-deps-image
   image: docker:latest
   variables:
-    CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
+    CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34"
     CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
   script:
+    - cat /etc/os-release
+    - apk add curl
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
     - uvx pip download --no-binary h5py h5py
