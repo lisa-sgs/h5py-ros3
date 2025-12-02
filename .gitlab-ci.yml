@@ -26,7 +26,8 @@ build-deps-image:
         - .gitlab-ci.yml
 
 build-wheels:
-  stage: build-wheels
+  needs:
+    - build-deps-image
   image: python
   variables:
     CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
