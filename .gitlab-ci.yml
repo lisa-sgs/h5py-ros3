@@ -6,7 +6,7 @@ build-deps-image:
   parallel:
     matrix:
       - OS_IMAGE: ["quay.io/pypa/manylinux_2_34_x86_64"]
-        OS_TAG_SLUG: ["manylinux_2_34"]
+        OS_TAG_SLUG: ["manylinux_2_34_x86_64"]
   variables:
     TAG: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
   script:
@@ -30,13 +30,10 @@ build-wheels:
   #   - build-deps-image
   image: docker:latest
   variables:
-    CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34"
+    CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34_x86_64"
     CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
     CIBW_ENVIRONMENT: |
       LD_LIBRARY_PATH=/usr/lib64:/usr/lib
-      CC=/usr/bin/gcc
-      CXX=/usr/bin/g++
-      LD=/usr/bin/ld
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - apk add curl && curl -LsSf https://astral.sh/uv/install.sh | sh
