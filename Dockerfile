@@ -1,21 +1,14 @@
-ARG BASE_IMAGE=debian:latest
+ARG BASE_IMAGE=quay.io/pypa/manylinux_2_34_x86_64
 FROM ${BASE_IMAGE}
 
 ARG HDF5_VERSION=2.0.0
 ARG PREFIX_PATH=/usr
 ARG CMAKE_BUILD_PARALLEL_LEVEL=4
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
 WORKDIR /scratch
 
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    golang \
-    patchelf && \
+RUN dnf install -y \
+    golang && \
     git clone https://github.com/aws/aws-lc.git --depth 1 && \
     git clone https://github.com/aws/s2n-tls.git --depth 1 && \
     git clone https://github.com/awslabs/aws-c-common.git --depth 1 && \
@@ -51,12 +44,4 @@ RUN apt-get update && \
     cmake -S aws-c-s3 -B aws-c-s3/build -DCMAKE_INSTALL_PREFIX=${PREFIX_PATH} -DBUILD_SHARED_LIBS=1  && \
     cmake --build aws-c-s3/build --target install && \
     cmake -S hdf5 -B hdf5/build -DCMAKE_INSTALL_PREFIX=${PREFIX_PATH} -DHDF5_ENABLE_ROS3_VFD=ON -DBUILD_SHARED_LIBS=1 && \
-    cmake --build hdf5/build --target install && \
-    apt-get remove -y \
-    build-essential \
-    cmake \
-    git \
-    golang && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    cmake --build hdf5/build --target install

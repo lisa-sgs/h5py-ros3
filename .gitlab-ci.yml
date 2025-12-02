@@ -5,8 +5,8 @@ build-deps-image:
   image: docker:latest
   parallel:
     matrix:
-      - OS_IMAGE: ["debian:latest"]
-        OS_TAG_SLUG: ["debian-latest"]
+      - OS_IMAGE: ["quay.io/pypa/manylinux_2_34_x86_64"]
+        OS_TAG_SLUG: ["manylinux_2_34"]
   variables:
     TAG: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
   script:
@@ -26,36 +26,17 @@ build-deps-image:
         - .gitlab-ci.yml
 
 build-wheels:
-  needs:
-    - build-deps-image
-  image: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
-  parallel:
-    matrix:
-      - OS_TAG_SLUG: ["debian-latest"]
-        PYTHON_VERSION: ["3.10", "3.11", "3.12", "3.13"]
+  stage: build-wheels
+  image: python
+  variables:
+    CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
+    CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
   script:
-    - echo "Building for Python $PYTHON_VERSION on $OS_TAG_SLUG"
-
-    - uv venv --python $PYTHON_VERSION .venv
-    - source .venv/bin/activate
-
+    - pip install cibuildwheel
     - pip download --no-binary h5py h5py
     - tar xzf h5py-*.tar.gz
     - cd h5py-*/
-
-    - echo "Building wheel..."
-    - uv build --wheel
-
-    - echo "Bundling dependencies..."
-    - uvx --from auditwheel auditwheel repair dist/*.whl --plat linux_x86_64
-
-    - pip install wheelhouse/*.whl
-    - python -c "import h5py; print(f'h5py version {h5py.__version__} loaded with HDF5 {h5py.version.hdf5_version}');"
-
-    - mkdir -p ../artifacts
-    - mv wheelhouse/*.whl ../artifacts/
-
+    - cibuildwheel --output-dir ../wheelhouse --platform linux
   artifacts:
     paths:
-      - artifacts/
-    expire_in: 1 day
+      - wheelhouse/
