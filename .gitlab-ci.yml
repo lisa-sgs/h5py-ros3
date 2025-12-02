@@ -1,0 +1,25 @@
+variables:
+  HDF5_VERSION: "2.0.0"
+
+build-deps-image:
+  parallel:
+    matrix:
+      - OS_IMAGE: ["debian:latest"]
+        OS_TAG_SLUG: ["debian-latest"]
+  variables:
+    TAG: "$CI_REGISTRY_IMAGE/deps:$OS_TAG_SLUG"
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker pull $TAG || true
+    - echo "Building base image for $OS_IMAGE..."
+    - docker build
+      --cache-from $TAG
+      --build-arg BASE_IMAGE=$OS_IMAGE
+      --build-arg HDF5_VERSION=$HDF5_VERSION
+      -f Dockerfile
+      -t $TAG .
+    - docker push $TAG
+  rules:
+    - changes:
+        - Dockerfile
+        - .gitlab-ci.yml
