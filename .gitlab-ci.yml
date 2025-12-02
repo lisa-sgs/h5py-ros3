@@ -26,8 +26,8 @@ build-deps-image:
         - .gitlab-ci.yml
 
 build-wheels:
-  # needs:
-  #   - build-deps-image
+  needs:
+    - build-deps-image
   image: docker:latest
   variables:
     CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34_x86_64"
@@ -46,3 +46,14 @@ build-wheels:
   artifacts:
     paths:
       - wheelhouse/
+
+publish-wheels:
+  image: ghcr.io/astral-sh/uv
+  needs:
+    - build-wheels
+  variables:
+    UV_PUBLISH_USERNAME: "gitlab-ci-token"
+    UV_PUBLISH_PASSWORD: "${CI_JOB_TOKEN}"
+    UV_PUBLISH_URL: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
+  script:
+    - uv publish wheelhouse/*
