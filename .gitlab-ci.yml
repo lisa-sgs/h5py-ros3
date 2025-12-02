@@ -36,6 +36,8 @@ build-wheels:
     CIBW_TEST_COMMAND: |
       python -c 'import h5py; import sys; sys.exit(0 if "ros3" in h5py.registered_drivers() else 1)'
   script:
+    - apk add curl && curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - uvx pip download --no-binary h5py h5py
     - tar xzf h5py-*.tar.gz
