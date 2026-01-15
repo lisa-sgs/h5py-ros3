@@ -44,5 +44,5 @@ RUN git clone https://github.com/aws/aws-lc.git --depth 1 && \
     cmake --build aws-c-auth/build --target install && \
     cmake -S aws-c-s3 -B aws-c-s3/build -DBUILD_SHARED_LIBS=1 && \
     cmake --build aws-c-s3/build --target install && \
-    cmake -S hdf5 -B hdf5/build --preset ci-StdShar-GNUC-S3 -DHDF5_ENABLE_ROS3_VFD=ON -DHDF5_BUILD_JAVA=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} && \
+    cmake -S hdf5 -B hdf5/build --preset ci-StdShar-GNUC-S3 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} && \
     cmake --build hdf5/build --target install
