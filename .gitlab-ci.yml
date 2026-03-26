@@ -43,6 +43,7 @@ build-wheels:
     - uvx pip download --no-binary h5py h5py
     - tar xzf h5py-*.tar.gz
     - cd h5py-*/
+    - uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-ros3
     - uvx cibuildwheel --output-dir ../wheelhouse
   artifacts:
     paths:
