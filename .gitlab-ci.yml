@@ -1,5 +1,5 @@
 variables:
-  HDF5_VERSION: "2.0.0"
+  HDF5_VERSION: "2.1.1"
 
 build-deps-image:
   image: docker:latest
