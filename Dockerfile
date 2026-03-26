@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=quay.io/pypa/manylinux_2_34_x86_64
 FROM ${BASE_IMAGE}
 
-ARG HDF5_VERSION=2.0.0
+ARG HDF5_VERSION=2.1.1
 ENV CMAKE_INSTALL_PREFIX=/usr
 ENV CMAKE_BUILD_PARALLEL_LEVEL=4
 ENV CMAKE_BUILD_TYPE=Release
@@ -21,7 +21,7 @@ RUN git clone https://github.com/aws/aws-lc.git --depth 1 && \
     git clone https://github.com/awslabs/aws-c-sdkutils.git --depth 1 && \
     git clone https://github.com/awslabs/aws-c-auth.git --depth 1 && \
     git clone https://github.com/awslabs/aws-c-s3.git --depth 1 && \
-    git clone https://github.com/HDFGroup/hdf5.git --branch hdf5_${HDF5_VERSION} --depth 1 && \
+    git clone https://github.com/HDFGroup/hdf5.git --branch ${HDF5_VERSION} --depth 1 && \
     cmake -S aws-lc -B aws-lc/build -DBUILD_SHARED_LIBS=1 -DDISABLE_GO=1 && \
     cmake --build aws-lc/build --target install && \
     cmake -S s2n-tls -B s2n-tls/build -DBUILD_SHARED_LIBS=1 && \
