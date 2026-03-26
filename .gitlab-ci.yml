@@ -27,7 +27,8 @@ build-deps-image:
 
 build-wheels:
   needs:
-    - build-deps-image
+    - job: build-deps-image
+      optional: true
   image: docker:latest
   variables:
     CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34_x86_64"
