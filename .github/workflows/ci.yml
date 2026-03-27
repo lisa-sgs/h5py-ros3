@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "main"
+    tags:
+      - "*"
+
+env:
+  HDF5_VERSION: "2.1.1"
+
+jobs:
+  build-deps-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        os_image: ["quay.io/pypa/manylinux_2_34_x86_64"]
+        os_tag_slug: ["manylinux_2_34_x86_64"]
+    env:
+      TAG: ghcr.io/${{ github.repository }}/deps:${{ matrix.os_tag_slug }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          echo "Building base image for ${{ matrix.os_image }}..."
+          docker build \
+            --cache-to type=inline
+            --cache-from ${{ env.TAG }} \
+            --build-arg BASE_IMAGE=${{ matrix.os_image }} \
+            --build-arg HDF5_VERSION=${{ env.HDF5_VERSION }} \
+            -f Dockerfile \
+            -t ${{ env.TAG }} .
+
+      - name: Push Docker image
+        run: docker push ${{ env.TAG }}
+
+  build-wheels:
+    needs: [build-deps-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/${{ github.repository }}/deps:manylinux_2_34_x86_64
+      CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
+      CIBW_ENVIRONMENT: "LD_LIBRARY_PATH=/opt/rh/gcc-toolset-14/root/usr/lib64:/usr/lib64:/usr/lib"
+      CIBW_TEST_COMMAND: python -c 'import h5py; import sys; sys.exit(0 if "ros3" in h5py.registered_drivers() else 1)'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download and extract h5py
+        run: |
+          uvx pip download --no-binary h5py h5py
+          tar xzf h5py-*.tar.gz
+
+      - name: Build wheels
+        run: |
+          cd h5py-*/
+          uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-ros3
+          uvx cibuildwheel --output-dir ../wheelhouse
+
+      - name: Upload wheels artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheelhouse
+          path: wheelhouse/
+
+  publish-wheels:
+    environment: release
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: wheelhouse
+          path: wheelhouse/
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Publish wheels
+        run: uv publish --trusted-publishing always wheelhouse/*
