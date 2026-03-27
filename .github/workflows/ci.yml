@@ -9,6 +9,7 @@ on:
 
 env:
   HDF5_VERSION: "2.1.1"
+  H5PY_VERSION: "3.16.0"
 
 jobs:
   build-deps-image:
@@ -74,11 +75,12 @@ jobs:
 
       - name: Download and extract h5py
         run: |
-          uvx pip download --no-binary h5py h5py
+          uvx pip download --no-binary h5py h5py=="$H5PY_VERSION"
           tar xzf h5py-*.tar.gz
 
       - name: Build wheels
         run: |
+          cp licenses/* h5py-*/licenses/
           cd h5py-*/
           uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-ros3
           uvx cibuildwheel --output-dir ../wheelhouse

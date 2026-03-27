@@ -1,5 +1,6 @@
 variables:
   HDF5_VERSION: "2.1.1"
+  H5PY_VERSION: "3.16.0"
 
 build-deps-image:
   image: docker:latest
@@ -14,6 +15,7 @@ build-deps-image:
     - docker pull $TAG || true
     - echo "Building base image for $OS_IMAGE..."
     - docker build
+      --cache-to type=inline
       --cache-from $TAG
       --build-arg BASE_IMAGE=$OS_IMAGE
       --build-arg HDF5_VERSION=$HDF5_VERSION
@@ -40,8 +42,9 @@ build-wheels:
     - apk add curl && curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - uvx pip download --no-binary h5py h5py
+    - uvx pip download --no-binary h5py h5py=="$H5PY_VERSION"
     - tar xzf h5py-*.tar.gz
+    - cp licenses/* h5py-*/licenses/
     - cd h5py-*/
     - uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-ros3
     - uvx cibuildwheel --output-dir ../wheelhouse
