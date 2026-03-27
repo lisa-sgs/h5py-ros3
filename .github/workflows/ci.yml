@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "Building base image for ${{ matrix.os_image }}..."
           docker build \
-            --cache-to type=inline
+            --cache-to type=inline \
             --cache-from ${{ env.TAG }} \
             --build-arg BASE_IMAGE=${{ matrix.os_image }} \
             --build-arg HDF5_VERSION=${{ env.HDF5_VERSION }} \
