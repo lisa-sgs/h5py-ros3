@@ -1,6 +1,7 @@
 variables:
+  # Make sure to keep these variables in sync in .github/workflows/ci.yml.
   HDF5_VERSION: "2.1.1"
-  H5PY_VERSION: "3.16.0"
+  H5PY_VERSION: "3.15.1"
 
 build-deps-image:
   image: docker:latest

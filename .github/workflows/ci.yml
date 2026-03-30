@@ -8,8 +8,9 @@ on:
       - "*"
 
 env:
+  # Make sure to keep these variables in sync in .gitlab-ci.yml.
   HDF5_VERSION: "2.1.1"
-  H5PY_VERSION: "3.16.0"
+  H5PY_VERSION: "3.15.1"
 
 jobs:
   build-deps-image:
