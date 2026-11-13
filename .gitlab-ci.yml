@@ -36,8 +36,10 @@ build-wheels:
     CIBW_MANYLINUX_X86_64_IMAGE: "$CI_REGISTRY_IMAGE/deps:manylinux_2_34_x86_64"
     CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
     CIBW_ENVIRONMENT: "LD_LIBRARY_PATH=/opt/rh/gcc-toolset-14/root/usr/lib64:/usr/lib64:/usr/lib"
-    CIBW_TEST_COMMAND: |
-      python -c 'import h5py; import sys; sys.exit(0 if "ros3" in h5py.registered_drivers() else 1)'
+    CIBW_TEST_COMMAND: >-
+      python -c "import importlib.util as u, h5py_s3;
+      assert u.find_spec('h5py') is None, 'h5py in env';
+      assert 'ros3' in h5py_s3.registered_drivers(), 'ros3 driver absent'"
   script:
     - apk add curl && curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
@@ -45,8 +47,9 @@ build-wheels:
     - uvx pip download --no-binary h5py h5py=="$H5PY_VERSION"
     - tar xzf h5py-*.tar.gz
     - cp licenses/* h5py-*/licenses/
+    - sh scripts/rename_module.sh h5py-*/
     - cd h5py-*/
-    - uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-ros3
+    - uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-s3
     - uvx cibuildwheel --output-dir ../wheelhouse
   artifacts:
     paths:
