@@ -58,7 +58,10 @@ jobs:
       CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/${{ github.repository }}/deps:manylinux_2_34_x86_64
       CIBW_BUILD: "cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp314-manylinux_x86_64"
       CIBW_ENVIRONMENT: "LD_LIBRARY_PATH=/opt/rh/gcc-toolset-14/root/usr/lib64:/usr/lib64:/usr/lib"
-      CIBW_TEST_COMMAND: python -c 'import h5py; import sys; sys.exit(0 if "ros3" in h5py.registered_drivers() else 1)'
+      CIBW_TEST_COMMAND: >-
+        python -c "import importlib.util as u, h5py_s3;
+        assert u.find_spec('h5py') is None, 'h5py in env';
+        assert 'ros3' in h5py_s3.registered_drivers(), 'ros3 not in env'"
     steps:
       - uses: actions/checkout@v6
 
@@ -82,6 +85,7 @@ jobs:
       - name: Build wheels
         run: |
           cp licenses/* h5py-*/licenses/
+          sh scripts/rename_module.sh h5py-*/
           cd h5py-*/
           uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-s3
           uvx cibuildwheel --output-dir ../wheelhouse
