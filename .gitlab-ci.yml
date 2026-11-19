@@ -49,7 +49,16 @@ build-wheels:
     - cp licenses/* h5py-*/licenses/
     - sh scripts/rename_module.sh h5py-*/
     - cd h5py-*/
+    # Git tag (e.g. 3.16.0.1) on release, h5py version otherwise.
+    - PACKAGE_VERSION="${CI_COMMIT_TAG:-$H5PY_VERSION}"
+    - |
+      case "$PACKAGE_VERSION" in
+        "$H5PY_VERSION"*) ;;
+        *) echo "ERROR: version $PACKAGE_VERSION does not match h5py $H5PY_VERSION" >&2; exit 1 ;;
+      esac
+    - echo "Building h5py-s3 $PACKAGE_VERSION"
     - uvx --from toml-cli toml set --toml-path pyproject.toml project.name h5py-s3
+    - uvx --from toml-cli toml set --toml-path pyproject.toml project.version "$PACKAGE_VERSION"
     - uvx cibuildwheel --output-dir ../wheelhouse
   artifacts:
     paths:
